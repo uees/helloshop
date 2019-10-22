@@ -6,22 +6,24 @@ User = get_user_model()
 
 
 class Category(Model):
-    name = models.CharField(max_length=64)
-    status = models.SmallIntegerField()
-    slug = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)  # 分类描述
-    menu_custom = JSONField()
-    meta_title = models.CharField(max_length=255)
-    meta_description = models.CharField(max_length=255)
-    meta_keywords = models.CharField(max_length=255)
-    level = models.IntegerField()  # 分类等级
+    name = models.CharField("名称", max_length=64)
+    slug = models.CharField(max_length=255, unique=True)
+    enable = models.BooleanField("可用", default=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
+    # [{title:title, url:url, target:target}]
+    menu_custom = JSONField("自定义菜单", null=True, blank=True)
+    meta_title = models.CharField(max_length=255, null=True, blank=True)
+    meta_description = models.CharField(max_length=255, null=True, blank=True)
+    meta_keywords = models.CharField(max_length=255, null=True, blank=True)
+    level = models.IntegerField("等级", default=0)  # 分类等级
+    # [attr_name1, attr_name2]
     filter_product_attr_selected = JSONField()  # 分类页面进行过滤的属性
     filter_product_attr_unselected = JSONField()  # 分类页面不进行过滤的属性
-    show_in_menu = models.SmallIntegerField()  # 是否在菜单中显示该分类
-    thumbnail_image = models.CharField(max_length=255)  # 缩略图
-    image = models.CharField(max_length=255)  # 分类图
-    created_at = models.DateTimeField()
-    updated_at = models.DateTimeField()
+    show_in_menu = models.BooleanField("在菜单中显示", default=False)  # 是否在菜单中显示该分类
+    thumbnail_image = models.CharField("缩略图", max_length=255, null=True, blank=True)  # 缩略图
+    image = models.CharField("图片", max_length=255, null=True, blank=True)  # 分类图
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True, null=True)
 
     parent = models.ForeignKey('self', verbose_name="父亲分类", null=True, on_delete=models.CASCADE)
     created_user = models.ForeignKey(User, verbose_name='创建者', null=True, on_delete=models.SET_NULL)
