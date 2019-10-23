@@ -25,7 +25,7 @@ class Post(Model):
 
     type = models.CharField("类型", max_length=32, choices=POST_TYPES, default=TYPE_ARTICLE)
     title = models.CharField("标题", max_length=255)
-    slug = models.CharField(max_length=255, unique=True, null=True)
+    slug = models.CharField(max_length=255, unique=True)
     meta_keywords = models.CharField(max_length=255, null=True, blank=True)
     meta_description = models.TextField(null=True, blank=True)
     content = models.TextField("内容")

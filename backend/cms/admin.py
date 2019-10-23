@@ -17,14 +17,17 @@ class StaticBlockAdmin(admin.ModelAdmin):
         }),
     )
 
+    """
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         # 给当前模型 title 字段指定 widget
         if db_field.name == "title":
             kwargs['widget'] = widgets.AdminTextInputWidget
             return db_field.formfield(**kwargs)
         return super().formfield_for_dbfield(db_field, request, **kwargs)
+    """
 
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    pass
+    prepopulated_fields = {"slug": ("title",)}
+    list_filter = ('type', 'status',)
