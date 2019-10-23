@@ -28,15 +28,29 @@ class Post(Model):
     meta_description = models.TextField(null=True, blank=True)
     content = models.TextField("内容")
     status = models.SmallIntegerField("状态", choices=POST_STATUS, default=STATUS_AUDIT)
+    updated_user_id = models.IntegerField("修改者 ID", default=0)
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
     updated_at = models.DateTimeField("更新时间", auto_now=True, null=True)
 
     created_user = models.ForeignKey(User, verbose_name='创建者', null=True, on_delete=models.SET_NULL)
-    updated_user = models.ForeignKey(User, verbose_name='修订者', null=True, on_delete=models.SET_NULL)
-
-    def __str__(self):
-        return self.title
 
     class Meta:
         verbose_name = 'Post'
         verbose_name_plural = 'Posts'
+
+    def __str__(self):
+        return self.title
+
+
+class StaticBlock(Model):
+    identify = models.CharField(max_length=100, null=True, blank=True)
+    title = models.TextField()
+    enable = models.BooleanField(default=True)
+    content = models.TextField()
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True, null=True)
+
+    created_user = models.ForeignKey(User, verbose_name='创建者', null=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return self.title

@@ -29,7 +29,7 @@ class Sku(Model):
     # {"color": "red", "size": "XXL"}
     attribute = JSONField("属性")
     qty = models.IntegerField("库存数量")
-    unit = models.CharField("库存单位", choices=UNITS, default='unit')
+    unit = models.CharField("库存单位", max_length=32, choices=UNITS, default='unit')
     price = models.DecimalField("价格", max_digits=12, decimal_places=2)
     cost_price = models.DecimalField("成本价", max_digits=12, decimal_places=2)
     special_price = models.DecimalField("优惠价", max_digits=12, decimal_places=2)

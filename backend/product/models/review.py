@@ -25,10 +25,10 @@ class Review(Model):
     updated_at = models.DateTimeField("更新时间", auto_now=True, null=True)
     audit_at = models.DateTimeField("审核时间", null=True, editable=False)
 
-    audit_user = models.ForeignKey(User, verbose_name="审核用户", on_delete=models.SET_NULL)
-    sku = models.ForeignKey("Sku", verbose_name="SKU", on_delete=models.SET_NULL)
+    audit_user = models.ForeignKey(User, verbose_name="审核用户", null=True, on_delete=models.SET_NULL)
+    sku = models.ForeignKey("Sku", verbose_name="SKU", null=True, on_delete=models.SET_NULL)
     flat = models.ForeignKey("Flat", verbose_name="产品", on_delete=models.CASCADE)
-    customer = models.ForeignKey("Customer", verbose_name="客户", on_delete=models.SET_NULL)
+    customer = models.ForeignKey("customer.Customer", verbose_name="客户", null=True, on_delete=models.SET_NULL)
 
     class Meta:
         verbose_name = '评论'

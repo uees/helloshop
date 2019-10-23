@@ -27,6 +27,7 @@ class Category(Model):
 
     parent = models.ForeignKey('self', verbose_name="父亲分类", null=True, on_delete=models.CASCADE)
     created_user = models.ForeignKey(User, verbose_name='创建者', null=True, on_delete=models.SET_NULL)
+    flats = models.ManyToManyField("Flat", verbose_name="产品", through='CategoryProductMembership')
 
     class Meta:
         verbose_name = '分类'
@@ -34,3 +35,11 @@ class Category(Model):
 
     def __str__(self):
         return self.name
+
+
+class CategoryProductMembership(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    flat = models.ForeignKey("Flat", on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "product_category_membership"
