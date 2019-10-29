@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django_mysql.models import Model
+# from django.contrib.auth.models import User
 
 User = get_user_model()
 
@@ -33,6 +34,7 @@ class Post(Model):
     updated_user_id = models.IntegerField("修改者 ID", default=0, editable=False)
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
     updated_at = models.DateTimeField("更新时间", auto_now=True, null=True)
+    deleted_at = models.DateTimeField("删除时间", editable=False, null=True)
 
     created_user = models.ForeignKey(User, verbose_name='创建者',
                                      null=True,
