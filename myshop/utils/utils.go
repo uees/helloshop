@@ -50,8 +50,8 @@ func setField(obj interface{}, name string, value interface{}) error {
 	return nil
 }
 
-// SetStructByJSON 由 json 对象生成 struct
-func SetStructByJSON(obj interface{}, mapData map[string]interface{}) error {
+// FillStructByJSON 由 json 对象生成 struct
+func FillStructByJSON(obj interface{}, mapData map[string]interface{}) error {
 	for key, value := range mapData {
 		if err := setField(obj, key, value); err != nil {
 			fmt.Println(err.Error())
@@ -61,8 +61,8 @@ func SetStructByJSON(obj interface{}, mapData map[string]interface{}) error {
 	return nil
 }
 
-// StrToIntMonth 字符串月份转整数月份
-func StrToIntMonth(month string) int {
+// MonthIndex 字符串月份转整数月份
+func MonthIndex(month string) int {
 	return monthMap[month]
 }
 

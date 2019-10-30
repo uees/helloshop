@@ -4,14 +4,9 @@ import (
 	"testing"
 )
 
-func TestInitJSON(t *testing.T) {
-	if configMap["webPoweredBy"] != "rdshop" {
-		t.Errorf("webPoweredBy != rdshop")
-	}
-}
-
-func TestDbConfig(t *testing.T) {
-	if DBConfig.URL == "" {
-		t.Errorf("no init DBConfig.URL")
+func TestConfig(t *testing.T) {
+	Instance.SetUp()
+	if Instance.DBConfig.URL == "{user}:{password}@tcp({host}:{port})/{database}?charset={charset}&parseTime=True&loc=Local" {
+		t.Errorf("init fail")
 	}
 }

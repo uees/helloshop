@@ -1,34 +1,16 @@
 package main
 
 import (
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/middleware/logger"
-	"github.com/kataras/iris/middleware/recover"
+	"fmt"
+	"myshop/components"
+	"myshop/config"
 )
 
+func init() {
+	components.Manager.Register(&config.Instance)
+	components.Manager.Init()
+}
+
 func main() {
-	app := iris.New()
-	app.Use(recover.New())
-	app.Use(logger.New())
-
-	// Method:   GET
-	// Resource: http://localhost:8080
-	app.Handle("GET", "/", func(ctx iris.Context) {
-		ctx.HTML("<h1>Welcome</h1>")
-	})
-
-	// same as app.Handle("GET", "/ping", [...])
-	// Method:   GET
-	// Resource: http://localhost:8080/ping
-	app.Get("/ping", func(ctx iris.Context) {
-		ctx.WriteString("pong")
-	})
-
-	// Method:   GET
-	// Resource: http://localhost:8080/hello
-	app.Get("/hello", func(ctx iris.Context) {
-		ctx.JSON(iris.Map{"message": "Hello Iris!"})
-	})
-
-	app.Run(iris.Addr(":8080"))
+	fmt.Println(config.Instance.DBConfig.URL)
 }

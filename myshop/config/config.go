@@ -12,48 +12,8 @@ import (
 	"strings"
 )
 
-func init() {
-	initBasePath()
-	initConfigMap()
-	initDBConfig()
-	initServerConfig()
-	// initWeAppConfig()
-	// initAPIConfig()
-}
-
-// BasePath 目录
-var BasePath string
-
-func initBasePath() {
-	if BasePath == "" {
-		_, filename, _, _ := runtime.Caller(1)
-		BasePath = path.Dir(path.Dir(filename))
-	}
-}
-
-// 配置数据
-var configMap map[string]interface{}
-
-func initConfigMap() {
-	// 保证只读取一次配置文件
-	if configMap != nil {
-		return
-	}
-
-	bytes, err := ioutil.ReadFile(path.Join(BasePath, "configuration.json"))
-	if err != nil {
-		fmt.Println("ReadFile: ", err.Error())
-	}
-
-	// 删除 JSON 中的注释
-	configStr := string(bytes[:])
-	configStr = regexp.MustCompile(`/\*.*\*/`).ReplaceAllString(configStr, "")
-	bytes = []byte(configStr)
-
-	if err := json.Unmarshal(bytes, &configMap); err != nil {
-		fmt.Println("invalid config: ", err.Error())
-	}
-}
+// Instance 配置组件对象
+var Instance Config
 
 type dBConfig struct {
 	Engine       string
@@ -69,26 +29,6 @@ type dBConfig struct {
 	MaxOpenConns int
 }
 
-// DBConfig 数据库相关配置
-var DBConfig dBConfig
-
-func initDBConfig() {
-	utils.SetStructByJSON(&DBConfig, configMap["database"].(map[string]interface{}))
-	if DBConfig.Engine != "mysql" {
-		panic(fmt.Errorf("不支持的数据库"))
-	}
-
-	portStr := strconv.Itoa(DBConfig.Port)
-
-	// 设置 DBConfig.URL
-	DBConfig.URL = strings.Replace(DBConfig.URL, "{database}", DBConfig.Name, -1)
-	DBConfig.URL = strings.Replace(DBConfig.URL, "{user}", DBConfig.User, -1)
-	DBConfig.URL = strings.Replace(DBConfig.URL, "{password}", DBConfig.Password, -1)
-	DBConfig.URL = strings.Replace(DBConfig.URL, "{host}", DBConfig.Host, -1)
-	DBConfig.URL = strings.Replace(DBConfig.URL, "{port}", portStr, -1)
-	DBConfig.URL = strings.Replace(DBConfig.URL, "{charset}", DBConfig.Charset, -1)
-}
-
 type serverConfig struct {
 	Debug       bool
 	Port        int
@@ -101,24 +41,10 @@ type serverConfig struct {
 	MinPageSize int
 }
 
-// ServerConfig 服务器相关配置
-var ServerConfig serverConfig
-
-func initServerConfig() {
-	utils.SetStructByJSON(&ServerConfig, configMap["go"].(map[string]interface{}))
-}
-
 type weAppConfig struct {
 	CodeToSessURL string
 	AppID         string
 	Secret        string
-}
-
-// WeAppConfig 微信小程序相关配置
-var WeAppConfig weAppConfig
-
-func initWeAppConfig() {
-	utils.SetStructByJSON(&WeAppConfig, configMap["weApp"].(map[string]interface{}))
 }
 
 type apiConfig struct {
@@ -126,9 +52,91 @@ type apiConfig struct {
 	URL    string
 }
 
-// APIConfig api相关配置
-var APIConfig apiConfig
+// Config 组件
+type Config struct {
+	data         map[string]interface{}
+	BasePath     string
+	DBConfig     dBConfig
+	ServerConfig serverConfig
+	APIConfig    apiConfig
+	WeAppConfig  weAppConfig
+}
 
-func initAPIConfig() {
-	utils.SetStructByJSON(&APIConfig, configMap["api"].(map[string]interface{}))
+// GetName method
+func (Config) GetName() string {
+	return "config"
+}
+
+// SetUp 初始化方法
+func (c *Config) SetUp() {
+	c.initBasePath()
+	c.initConfigMap()
+	c.initDBConfig()
+	c.initServerConfig()
+	// initWeAppConfig()
+	// initAPIConfig()
+}
+
+func (c *Config) initBasePath() {
+	if c.BasePath == "" {
+		_, filename, _, _ := runtime.Caller(1)
+		c.BasePath = path.Dir(path.Dir(filename))
+	}
+}
+
+func (c *Config) initConfigMap() {
+	bytes, err := ioutil.ReadFile(path.Join(c.BasePath, "configuration.json"))
+	if err != nil {
+		fmt.Println("ReadFile: ", err.Error())
+	}
+
+	// 删除 JSON 中的注释
+	configStr := string(bytes[:])
+	configStr = regexp.MustCompile(`/\*.*\*/`).ReplaceAllString(configStr, "")
+	bytes = []byte(configStr)
+
+	if err := json.Unmarshal(bytes, &c.data); err != nil {
+		fmt.Println("invalid config: ", err.Error())
+	}
+}
+
+func (c *Config) initDBConfig() {
+	err := utils.FillStructByJSON(&c.DBConfig, c.data["database"].(map[string]interface{}))
+	if err != nil {
+		panic(err)
+	}
+	if c.DBConfig.Engine != "mysql" {
+		panic(fmt.Errorf("不支持的数据库"))
+	}
+
+	portStr := strconv.Itoa(c.DBConfig.Port)
+
+	// 设置 DBConfig.URL
+	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{database}", c.DBConfig.Name, -1)
+	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{user}", c.DBConfig.User, -1)
+	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{password}", c.DBConfig.Password, -1)
+	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{host}", c.DBConfig.Host, -1)
+	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{port}", portStr, -1)
+	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{charset}", c.DBConfig.Charset, -1)
+}
+
+func (c *Config) initServerConfig() {
+	err := utils.FillStructByJSON(&c.ServerConfig, c.data["go"].(map[string]interface{}))
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (c *Config) initWeAppConfig() {
+	err := utils.FillStructByJSON(&c.WeAppConfig, c.data["weApp"].(map[string]interface{}))
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (c *Config) initAPIConfig() {
+	err := utils.FillStructByJSON(&c.APIConfig, c.data["api"].(map[string]interface{}))
+	if err != nil {
+		panic(err)
+	}
 }
