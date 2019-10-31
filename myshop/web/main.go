@@ -3,14 +3,17 @@ package main
 import (
 	"fmt"
 	"myshop/components"
-	"myshop/config"
+	"myshop/models"
 )
 
 func init() {
-	components.Manager.Register(&config.Instance)
-	components.Manager.Init()
+	manager := components.NewManager()
+	manager.Register(components.DbRegister)
+	manager.Init()
 }
 
 func main() {
-	fmt.Println(config.Instance.DBConfig.URL)
+	var user models.User
+	components.DB.First(&user, 1) // 查询 id 为 1 的 product
+	fmt.Println(user.Username, user.Email)
 }

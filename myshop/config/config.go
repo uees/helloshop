@@ -12,8 +12,23 @@ import (
 	"strings"
 )
 
-// Instance 配置组件对象
-var Instance Config
+// config data
+var confData map[string]interface{}
+
+// BasePath 基础路径
+var BasePath string
+
+// DBConfig 数据库配置
+var DBConfig dBConfig
+
+// ServerConfig 服务端配置
+var ServerConfig serverConfig
+
+// APIConfig api 配置
+var APIConfig apiConfig
+
+// WeAppConfig wx 配置
+var WeAppConfig weAppConfig
 
 type dBConfig struct {
 	Engine       string
@@ -52,40 +67,19 @@ type apiConfig struct {
 	URL    string
 }
 
-// Config 组件
-type Config struct {
-	data         map[string]interface{}
-	BasePath     string
-	DBConfig     dBConfig
-	ServerConfig serverConfig
-	APIConfig    apiConfig
-	WeAppConfig  weAppConfig
-}
-
-// GetName method
-func (Config) GetName() string {
-	return "config"
-}
-
-// SetUp 初始化方法
-func (c *Config) SetUp() {
-	c.initBasePath()
-	c.initConfigMap()
-	c.initDBConfig()
-	c.initServerConfig()
-	// initWeAppConfig()
-	// initAPIConfig()
-}
-
-func (c *Config) initBasePath() {
-	if c.BasePath == "" {
+func initBasePath() {
+	if BasePath == "" {
 		_, filename, _, _ := runtime.Caller(1)
-		c.BasePath = path.Dir(path.Dir(filename))
+		BasePath = path.Dir(path.Dir(filename))
 	}
 }
 
-func (c *Config) initConfigMap() {
-	bytes, err := ioutil.ReadFile(path.Join(c.BasePath, "configuration.json"))
+func initConfigData() {
+	if confData != nil {
+		return
+	}
+
+	bytes, err := ioutil.ReadFile(path.Join(BasePath, "configuration.json"))
 	if err != nil {
 		fmt.Println("ReadFile: ", err.Error())
 	}
@@ -95,48 +89,57 @@ func (c *Config) initConfigMap() {
 	configStr = regexp.MustCompile(`/\*.*\*/`).ReplaceAllString(configStr, "")
 	bytes = []byte(configStr)
 
-	if err := json.Unmarshal(bytes, &c.data); err != nil {
+	if err := json.Unmarshal(bytes, &confData); err != nil {
 		fmt.Println("invalid config: ", err.Error())
 	}
 }
 
-func (c *Config) initDBConfig() {
-	err := utils.FillStructByJSON(&c.DBConfig, c.data["database"].(map[string]interface{}))
+func initDBConfig() {
+	err := utils.FillStructByJSON(&DBConfig, confData["database"].(map[string]interface{}))
 	if err != nil {
 		panic(err)
 	}
-	if c.DBConfig.Engine != "mysql" {
+	if DBConfig.Engine != "mysql" {
 		panic(fmt.Errorf("不支持的数据库"))
 	}
 
-	portStr := strconv.Itoa(c.DBConfig.Port)
+	portStr := strconv.Itoa(DBConfig.Port)
 
 	// 设置 DBConfig.URL
-	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{database}", c.DBConfig.Name, -1)
-	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{user}", c.DBConfig.User, -1)
-	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{password}", c.DBConfig.Password, -1)
-	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{host}", c.DBConfig.Host, -1)
-	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{port}", portStr, -1)
-	c.DBConfig.URL = strings.Replace(c.DBConfig.URL, "{charset}", c.DBConfig.Charset, -1)
+	DBConfig.URL = strings.Replace(DBConfig.URL, "{database}", DBConfig.Name, -1)
+	DBConfig.URL = strings.Replace(DBConfig.URL, "{user}", DBConfig.User, -1)
+	DBConfig.URL = strings.Replace(DBConfig.URL, "{password}", DBConfig.Password, -1)
+	DBConfig.URL = strings.Replace(DBConfig.URL, "{host}", DBConfig.Host, -1)
+	DBConfig.URL = strings.Replace(DBConfig.URL, "{port}", portStr, -1)
+	DBConfig.URL = strings.Replace(DBConfig.URL, "{charset}", DBConfig.Charset, -1)
 }
 
-func (c *Config) initServerConfig() {
-	err := utils.FillStructByJSON(&c.ServerConfig, c.data["go"].(map[string]interface{}))
+func initServerConfig() {
+	err := utils.FillStructByJSON(&ServerConfig, confData["go"].(map[string]interface{}))
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (c *Config) initWeAppConfig() {
-	err := utils.FillStructByJSON(&c.WeAppConfig, c.data["weApp"].(map[string]interface{}))
+func initWeAppConfig() {
+	err := utils.FillStructByJSON(&WeAppConfig, confData["weApp"].(map[string]interface{}))
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (c *Config) initAPIConfig() {
-	err := utils.FillStructByJSON(&c.APIConfig, c.data["api"].(map[string]interface{}))
+func initAPIConfig() {
+	err := utils.FillStructByJSON(&APIConfig, confData["api"].(map[string]interface{}))
 	if err != nil {
 		panic(err)
 	}
+}
+
+func init() {
+	initBasePath()
+	initConfigData()
+	initDBConfig()
+	initServerConfig()
+	// initWeAppConfig()
+	// initAPIConfig()
 }

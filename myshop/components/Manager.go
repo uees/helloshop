@@ -1,36 +1,37 @@
 package components
 
-// IComponent 组件接口
-type IComponent interface {
-	SetUp()
-	GetName() string
-}
+import "myshop/utils"
 
-// Manager 组件管理器
-var Manager = &CManager{
-	Registered: map[string]bool{},
-}
+// Register 组件接口
+type Register func()
 
-// CManager 组件管理器结构体
-type CManager struct {
+// Manager 组件管理器结构体
+type Manager struct {
 	Registered map[string]bool
-	Components []*IComponent
+	Registeres []Register
+}
+
+// NewManager Manager 工厂
+func NewManager() *Manager {
+	return &Manager{
+		Registered: map[string]bool{},
+	}
 }
 
 // Register 注册组件
-func (m *CManager) Register(components ...IComponent) {
-	for _, component := range components {
-		componentName := component.GetName()
-		if !m.Registered[componentName] {
-			m.Registered[componentName] = true
-			m.Components = append(m.Components, &component)
+func (m *Manager) Register(registeres ...Register) {
+	for _, register := range registeres {
+		name := utils.GetFunctionName(register)
+		if !m.Registered[name] {
+			m.Registered[name] = true
+			m.Registeres = append(m.Registeres, register)
 		}
 	}
 }
 
 // Init 初始化注册的组件
-func (m *CManager) Init() {
-	for _, component := range m.Components {
-		(*component).SetUp()
+func (m Manager) Init() {
+	for _, register := range m.Registeres {
+		register()
 	}
 }
